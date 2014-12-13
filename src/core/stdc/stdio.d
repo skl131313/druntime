@@ -300,7 +300,7 @@ else version( CRuntime_Microsoft )
     alias long fpos_t;
 
     ///
-    struct _iobuf
+    export struct _iobuf
     {
         void* undefined;
     }
@@ -627,15 +627,15 @@ version( CRuntime_DigitalMars )
     private extern shared FILE[_NFILE] _iob;
 
     ///
-    shared stdin  = &_iob[0];
+    export shared stdin  = &_iob[0];
     ///
-    shared stdout = &_iob[1];
+    export shared stdout = &_iob[1];
     ///
-    shared stderr = &_iob[2];
+    export shared stderr = &_iob[2];
     ///
-    shared stdaux = &_iob[3];
+    export shared stdaux = &_iob[3];
     ///
-    shared stdprn = &_iob[4];
+    export shared stdprn = &_iob[4];
 }
 else version( CRuntime_Microsoft )
 {
@@ -670,11 +670,11 @@ else version( CRuntime_Microsoft )
     extern shared void function() _fcloseallp;
 
     ///
-    shared FILE* stdin;  // = &__iob_func()[0];
+    export shared FILE* stdin;  // = &__iob_func()[0];
     ///
-    shared FILE* stdout; // = &__iob_func()[1];
+    export shared FILE* stdout; // = &__iob_func()[1];
     ///
-    shared FILE* stderr; // = &__iob_func()[2];
+    export shared FILE* stderr; // = &__iob_func()[2];
 }
 else version( CRuntime_Glibc )
 {
@@ -1053,7 +1053,7 @@ else version( CRuntime_DigitalMars )
 else version( CRuntime_Microsoft )
 {
   // No unsafe pointer manipulation.
-  @trusted
+  @trusted export
   {
       ///
     void rewind(FILE* stream);
@@ -1070,17 +1070,24 @@ else version( CRuntime_Microsoft )
   ///
     int _snprintf(char* s, size_t n, in char* format, ...);
     ///
-    int  snprintf(char* s, size_t n, in char* format, ...);
+    // TODO workaround for msvc.c linker comments.
+    //int  snprintf(char* s, size_t n, in char* format, ...);
+    alias snprintf = _snprintf;
 
     ///
     int _vsnprintf(char* s, size_t n, in char* format, va_list arg);
     ///
     int  vsnprintf(char* s, size_t n, in char* format, va_list arg);
 
+    // TODO workaround for msvc.c linker comments
+    int _msvc_fputc_nolock(int c, FILE *fp);
+    int _msvc_fgetc_nolock(FILE *fp);
+    alias _fputc_nolock = _msvc_fputc_nolock;
+    alias _fgetc_nolock = _msvc_fgetc_nolock;
     ///
-    int _fputc_nolock(int c, FILE *fp);
+    //int _fputc_nolock(int c, FILE *fp);
     ///
-    int _fgetc_nolock(FILE *fp);
+    //int _fgetc_nolock(FILE *fp);
 
     ///
     int _lock_file(FILE *fp);

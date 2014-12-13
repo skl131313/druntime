@@ -8,7 +8,7 @@
  * Authors:   Walter Bright, Sean Kelly
  */
 
-module object;
+export module object;
 
 private
 {
@@ -47,7 +47,7 @@ version (D_ObjectiveC) public import core.attribute : selector;
 /**
  * All D class objects inherit from Object.
  */
-class Object
+export class Object
 {
     /**
      * Convert Object to a human readable string.
@@ -135,7 +135,7 @@ class Object
     }
 }
 
-auto opEquals(Object lhs, Object rhs)
+export auto opEquals(Object lhs, Object rhs)
 {
     // If aliased to the same object or both null => equal
     if (lhs is rhs) return true;
@@ -160,7 +160,7 @@ auto opEquals(Object lhs, Object rhs)
 /************************
 * Returns true if lhs and rhs are equal.
 */
-auto opEquals(const Object lhs, const Object rhs)
+export auto opEquals(const Object lhs, const Object rhs)
 {
     // A hack for the moment.
     return opEquals(cast()lhs, cast()rhs);
@@ -168,7 +168,7 @@ auto opEquals(const Object lhs, const Object rhs)
 
 private extern(C) void _d_setSameMutex(shared Object ownee, shared Object owner) nothrow;
 
-void setSameMutex(shared Object ownee, shared Object owner)
+export void setSameMutex(shared Object ownee, shared Object owner)
 {
     _d_setSameMutex(ownee, owner);
 }
@@ -178,7 +178,7 @@ void setSameMutex(shared Object ownee, shared Object owner)
  * When an object is accessed via an interface, an Interface* appears as the
  * first entry in its vtbl.
  */
-struct Interface
+export struct Interface
 {
     TypeInfo_Class   classinfo;  /// .classinfo for this interface (not for containing class)
     void*[]     vtbl;
@@ -189,7 +189,7 @@ struct Interface
  * Array of pairs giving the offset and type information for each
  * member in an aggregate.
  */
-struct OffsetTypeInfo
+export struct OffsetTypeInfo
 {
     size_t   offset;    /// Offset of member from start of object
     TypeInfo ti;        /// TypeInfo for this member
@@ -200,7 +200,7 @@ struct OffsetTypeInfo
  * Can be retrieved for any type using a
  * $(GLINK2 expression,TypeidExpression, TypeidExpression).
  */
-class TypeInfo
+export class TypeInfo
 {
     override string toString() const pure @safe nothrow
     {
@@ -332,7 +332,7 @@ class TypeInfo
     @property immutable(void)* rtInfo() nothrow pure const @safe @nogc { return null; }
 }
 
-class TypeInfo_Typedef : TypeInfo
+export class TypeInfo_Typedef : TypeInfo
 {
     override string toString() const { return name; }
 
@@ -373,13 +373,13 @@ class TypeInfo_Typedef : TypeInfo
     void[]   m_init;
 }
 
-class TypeInfo_Enum : TypeInfo_Typedef
+export class TypeInfo_Enum : TypeInfo_Typedef
 {
 
 }
 
 // Please make sure to keep this in sync with TypeInfo_P (src/rt/typeinfo/ti_ptr.d)
-class TypeInfo_Pointer : TypeInfo
+export class TypeInfo_Pointer : TypeInfo
 {
     override string toString() const { return m_next.toString() ~ "*"; }
 
@@ -434,7 +434,7 @@ class TypeInfo_Pointer : TypeInfo
     TypeInfo m_next;
 }
 
-class TypeInfo_Array : TypeInfo
+export class TypeInfo_Array : TypeInfo
 {
     override string toString() const { return value.toString() ~ "[]"; }
 
@@ -524,7 +524,7 @@ class TypeInfo_Array : TypeInfo
     }
 }
 
-class TypeInfo_StaticArray : TypeInfo
+export class TypeInfo_StaticArray : TypeInfo
 {
     override string toString() const
     {
@@ -650,7 +650,7 @@ class TypeInfo_StaticArray : TypeInfo
     }
 }
 
-class TypeInfo_AssociativeArray : TypeInfo
+export class TypeInfo_AssociativeArray : TypeInfo
 {
     override string toString() const
     {
@@ -706,7 +706,7 @@ class TypeInfo_AssociativeArray : TypeInfo
     }
 }
 
-class TypeInfo_Vector : TypeInfo
+export class TypeInfo_Vector : TypeInfo
 {
     override string toString() const { return "__vector(" ~ base.toString() ~ ")"; }
 
@@ -742,7 +742,7 @@ class TypeInfo_Vector : TypeInfo
     TypeInfo base;
 }
 
-class TypeInfo_Function : TypeInfo
+export class TypeInfo_Function : TypeInfo
 {
     override string toString() const
     {
@@ -797,7 +797,7 @@ unittest
     assert(typeid(functionTypes[2]).toString() == "int function(int, int)");
 }
 
-class TypeInfo_Delegate : TypeInfo
+export class TypeInfo_Delegate : TypeInfo
 {
     override string toString() const
     {
@@ -900,7 +900,7 @@ unittest
  * Can be retrieved from an object instance by using the
  * $(DDSUBLINK spec/property,classinfo, .classinfo) property.
  */
-class TypeInfo_Class : TypeInfo
+export class TypeInfo_Class : TypeInfo
 {
     override string toString() const { return info.name; }
 
@@ -1017,6 +1017,7 @@ class TypeInfo_Class : TypeInfo
                         return c;
                 }
             }
+          }
         }
         return null;
     }
@@ -1055,7 +1056,7 @@ unittest
     assert(typeid(X).initializer.length == typeid(immutable(X)).initializer.length);
 }
 
-class TypeInfo_Interface : TypeInfo
+export class TypeInfo_Interface : TypeInfo
 {
     override string toString() const { return info.name; }
 
@@ -1124,7 +1125,7 @@ class TypeInfo_Interface : TypeInfo
     TypeInfo_Class info;
 }
 
-class TypeInfo_Struct : TypeInfo
+export class TypeInfo_Struct : TypeInfo
 {
     override string toString() const { return name; }
 
@@ -1277,7 +1278,7 @@ unittest
     assert(!typeid(S).equals(&s, &s));
 }
 
-class TypeInfo_Tuple : TypeInfo
+export class TypeInfo_Tuple : TypeInfo
 {
     TypeInfo[] elements;
 
@@ -1363,7 +1364,7 @@ class TypeInfo_Tuple : TypeInfo
     }
 }
 
-class TypeInfo_Const : TypeInfo
+export class TypeInfo_Const : TypeInfo
 {
     override string toString() const
     {
@@ -1407,7 +1408,7 @@ class TypeInfo_Const : TypeInfo
     TypeInfo base;
 }
 
-class TypeInfo_Invariant : TypeInfo_Const
+export class TypeInfo_Invariant : TypeInfo_Const
 {
     override string toString() const
     {
@@ -1415,7 +1416,7 @@ class TypeInfo_Invariant : TypeInfo_Const
     }
 }
 
-class TypeInfo_Shared : TypeInfo_Const
+export class TypeInfo_Shared : TypeInfo_Const
 {
     override string toString() const
     {
@@ -1423,7 +1424,7 @@ class TypeInfo_Shared : TypeInfo_Const
     }
 }
 
-class TypeInfo_Inout : TypeInfo_Const
+export class TypeInfo_Inout : TypeInfo_Const
 {
     override string toString() const
     {
@@ -1456,7 +1457,7 @@ enum
 }
 
 
-struct ModuleInfo
+export struct ModuleInfo
 {
     uint _flags;
     uint _index; // index into _moduleinfo_array[]
@@ -1645,7 +1646,7 @@ unittest
  * when these errors are thrown, making it unsafe to continue execution after
  * catching them.
  */
-class Throwable : Object
+export class Throwable : Object
 {
     interface TraceInfo
     {
@@ -1754,7 +1755,7 @@ class Throwable : Object
  * represent runtime errors that should not be caught, as certain runtime
  * guarantees may not hold, making it unsafe to continue program execution.
  */
-class Exception : Throwable
+export class Exception : Throwable
 {
 
     /**
@@ -1811,7 +1812,7 @@ unittest
  * Certain runtime guarantees may fail to hold when these errors are
  * thrown, making it unsafe to continue execution after catching them.
  */
-class Error : Throwable
+export class Error : Throwable
 {
     /**
      * Creates a new instance of Error. The next parameter is used
@@ -1869,7 +1870,7 @@ unittest
 /* Used in Exception Handling LSDA tables to 'wrap' C++ type info
  * so it can be distinguished from D TypeInfo
  */
-class __cpp_type_info_ptr
+export class __cpp_type_info_ptr
 {
     void* ptr;          // opaque pointer to C++ RTTI type info
 }
@@ -1911,48 +1912,48 @@ extern (C)
     void* _d_assocarrayliteralTX(const TypeInfo_AssociativeArray ti, void[] keys, void[] values) pure;
 }
 
-void* aaLiteral(Key, Value)(Key[] keys, Value[] values) @trusted pure
+export void* aaLiteral(Key, Value)(Key[] keys, Value[] values) @trusted pure
 {
     return _d_assocarrayliteralTX(typeid(Value[Key]), *cast(void[]*)&keys, *cast(void[]*)&values);
 }
 
 alias AssociativeArray(Key, Value) = Value[Key];
 
-void clear(T : Value[Key], Value, Key)(T aa)
+export void clear(T : Value[Key], Value, Key)(T aa)
 {
     _aaClear(*cast(void **) &aa);
 }
 
-void clear(T : Value[Key], Value, Key)(T* aa)
+export void clear(T : Value[Key], Value, Key)(T* aa)
 {
     _aaClear(*cast(void **) aa);
 }
 
-T rehash(T : Value[Key], Value, Key)(T aa)
+export T rehash(T : Value[Key], Value, Key)(T aa)
 {
     _aaRehash(cast(void**)&aa, typeid(Value[Key]));
     return aa;
 }
 
-T rehash(T : Value[Key], Value, Key)(T* aa)
+export T rehash(T : Value[Key], Value, Key)(T* aa)
 {
     _aaRehash(cast(void**)aa, typeid(Value[Key]));
     return *aa;
 }
 
-T rehash(T : shared Value[Key], Value, Key)(T aa)
+export T rehash(T : shared Value[Key], Value, Key)(T aa)
 {
     _aaRehash(cast(void**)&aa, typeid(Value[Key]));
     return aa;
 }
 
-T rehash(T : shared Value[Key], Value, Key)(T* aa)
+export T rehash(T : shared Value[Key], Value, Key)(T* aa)
 {
     _aaRehash(cast(void**)aa, typeid(Value[Key]));
     return *aa;
 }
 
-V[K] dup(T : V[K], K, V)(T aa)
+export V[K] dup(T : V[K], K, V)(T aa)
 {
     //pragma(msg, "K = ", K, ", V = ", V);
 
@@ -1988,12 +1989,12 @@ V[K] dup(T : V[K], K, V)(T aa)
     return result;
 }
 
-V[K] dup(T : V[K], K, V)(T* aa)
+export V[K] dup(T : V[K], K, V)(T* aa)
 {
     return (*aa).dup;
 }
 
-auto byKey(T : V[K], K, V)(T aa) pure nothrow @nogc
+export auto byKey(T : V[K], K, V)(T aa) pure nothrow @nogc
 {
     import core.internal.traits : substInout;
 
@@ -2011,12 +2012,12 @@ auto byKey(T : V[K], K, V)(T aa) pure nothrow @nogc
     return Result(_aaRange(cast(void*)aa));
 }
 
-auto byKey(T : V[K], K, V)(T* aa) pure nothrow @nogc
+export auto byKey(T : V[K], K, V)(T* aa) pure nothrow @nogc
 {
     return (*aa).byKey();
 }
 
-auto byValue(T : V[K], K, V)(T aa) pure nothrow @nogc
+export auto byValue(T : V[K], K, V)(T aa) pure nothrow @nogc
 {
     import core.internal.traits : substInout;
 
@@ -2034,12 +2035,12 @@ auto byValue(T : V[K], K, V)(T aa) pure nothrow @nogc
     return Result(_aaRange(cast(void*)aa));
 }
 
-auto byValue(T : V[K], K, V)(T* aa) pure nothrow @nogc
+export auto byValue(T : V[K], K, V)(T* aa) pure nothrow @nogc
 {
     return (*aa).byValue();
 }
 
-auto byKeyValue(T : V[K], K, V)(T aa) pure nothrow @nogc
+export auto byKeyValue(T : V[K], K, V)(T aa) pure nothrow @nogc
 {
     import core.internal.traits : substInout;
 
@@ -2071,12 +2072,12 @@ auto byKeyValue(T : V[K], K, V)(T aa) pure nothrow @nogc
     return Result(_aaRange(cast(void*)aa));
 }
 
-auto byKeyValue(T : V[K], K, V)(T* aa) pure nothrow @nogc
+export auto byKeyValue(T : V[K], K, V)(T* aa) pure nothrow @nogc
 {
     return (*aa).byKeyValue();
 }
 
-Key[] keys(T : Value[Key], Value, Key)(T aa) @property
+export Key[] keys(T : Value[Key], Value, Key)(T aa) @property
 {
     auto a = cast(void[])_aaKeys(cast(inout(void)*)aa, Key.sizeof, typeid(Key[]));
     auto res = *cast(Key[]*)&a;
@@ -2084,12 +2085,12 @@ Key[] keys(T : Value[Key], Value, Key)(T aa) @property
     return res;
 }
 
-Key[] keys(T : Value[Key], Value, Key)(T *aa) @property
+export Key[] keys(T : Value[Key], Value, Key)(T *aa) @property
 {
     return (*aa).keys;
 }
 
-Value[] values(T : Value[Key], Value, Key)(T aa) @property
+export Value[] values(T : Value[Key], Value, Key)(T aa) @property
 {
     auto a = cast(void[])_aaValues(cast(inout(void)*)aa, Key.sizeof, Value.sizeof, typeid(Value[]));
     auto res = *cast(Value[]*)&a;
@@ -2097,7 +2098,7 @@ Value[] values(T : Value[Key], Value, Key)(T aa) @property
     return res;
 }
 
-Value[] values(T : Value[Key], Value, Key)(T *aa) @property
+export Value[] values(T : Value[Key], Value, Key)(T *aa) @property
 {
     return (*aa).values;
 }
@@ -2129,13 +2130,13 @@ unittest
     assert(T.count == 2);
 }
 
-inout(V) get(K, V)(inout(V[K]) aa, K key, lazy inout(V) defaultValue)
+export inout(V) get(K, V)(inout(V[K]) aa, K key, lazy inout(V) defaultValue)
 {
     auto p = key in aa;
     return p ? *p : defaultValue;
 }
 
-inout(V) get(K, V)(inout(V[K])* aa, K key, lazy inout(V) defaultValue)
+export inout(V) get(K, V)(inout(V[K])* aa, K key, lazy inout(V) defaultValue)
 {
     return (*aa).get(key, defaultValue);
 }
@@ -2455,7 +2456,7 @@ private void _destructRecurse(E, size_t n)(ref E[n] arr)
 }
 
 // Public and explicitly undocumented
-void _postblitRecurse(S)(ref S s)
+export void _postblitRecurse(S)(ref S s)
     if (is(S == struct))
 {
     static if (__traits(hasMember, S, "__xpostblit") &&
@@ -2465,7 +2466,7 @@ void _postblitRecurse(S)(ref S s)
 }
 
 // Ditto
-void _postblitRecurse(E, size_t n)(ref E[n] arr)
+export void _postblitRecurse(E, size_t n)(ref E[n] arr)
 {
     import core.internal.traits : hasElaborateCopyConstructor;
 
@@ -2742,12 +2743,12 @@ unittest
     does is done and so that it no longer references any other objects. It does
     $(I not) initiate a GC cycle or free any GC memory.
   +/
-void destroy(T)(T obj) if (is(T == class))
+export void destroy(T)(T obj) if (is(T == class))
 {
     rt_finalize(cast(void*)obj);
 }
 
-void destroy(T)(T obj) if (is(T == interface))
+export void destroy(T)(T obj) if (is(T == interface))
 {
     destroy(cast(Object)obj);
 }
@@ -2807,7 +2808,7 @@ version(unittest) unittest
    }
 }
 
-void destroy(T)(ref T obj) if (is(T == struct))
+export void destroy(T)(ref T obj) if (is(T == struct))
 {
     _destructRecurse(obj);
     () @trusted {
@@ -2859,7 +2860,7 @@ version(unittest) nothrow @safe @nogc unittest
    }
 }
 
-void destroy(T : U[n], U, size_t n)(ref T obj) if (!is(T == struct))
+export void destroy(T : U[n], U, size_t n)(ref T obj) if (!is(T == struct))
 {
     foreach_reverse (ref e; obj[])
         destroy(e);
@@ -2922,7 +2923,7 @@ unittest
     }
 }
 
-void destroy(T)(ref T obj)
+export void destroy(T)(ref T obj)
     if (!is(T == struct) && !is(T == interface) && !is(T == class) && !_isStaticArray!T)
 {
     obj = T.init;
@@ -2977,7 +2978,7 @@ private
  *
  * Note: The capacity of a slice may be impacted by operations on other slices.
  */
-@property size_t capacity(T)(T[] arr) pure nothrow @trusted
+export @property size_t capacity(T)(T[] arr) pure nothrow @trusted
 {
     return _d_arraysetcapacity(typeid(T[]), 0, cast(void *)&arr);
 }
@@ -3012,7 +3013,7 @@ private
  * The return value is the new capacity of the array (which may be larger than
  * the requested capacity).
  */
-size_t reserve(T)(ref T[] arr, size_t newcapacity) pure nothrow @trusted
+export size_t reserve(T)(ref T[] arr, size_t newcapacity) pure nothrow @trusted
 {
     return _d_arraysetcapacity(typeid(T[]), newcapacity, cast(void *)&arr);
 }
@@ -3059,7 +3060,7 @@ unittest
  * Returns:
  *   The input is returned.
  */
-auto ref inout(T[]) assumeSafeAppend(T)(auto ref inout(T[]) arr) nothrow
+export auto ref inout(T[]) assumeSafeAppend(T)(auto ref inout(T[]) arr) nothrow
 {
     _d_arrayshrinkfit(typeid(T[]), *(cast(void[]*)&arr));
     return arr;
@@ -3166,7 +3167,7 @@ version (none)
  * types have the same contents in the same sequence.
  */
 
-bool _ArrayEq(T1, T2)(T1[] a1, T2[] a2)
+export bool _ArrayEq(T1, T2)(T1[] a1, T2[] a2)
 {
     if (a1.length != a2.length)
         return false;
@@ -3206,7 +3207,7 @@ struct Test
 }
 ----
 */
-size_t hashOf(T)(auto ref T arg, size_t seed = 0)
+export size_t hashOf(T)(auto ref T arg, size_t seed = 0)
 {
     import core.internal.hash;
     return core.internal.hash.hashOf(arg, seed);
@@ -3223,12 +3224,12 @@ unittest
 bool _xopEquals(in void*, in void*)
 {
     throw new Error("TypeInfo.equals is not implemented");
-}
+}*/
 
-bool _xopCmp(in void*, in void*)
+/*bool _xopCmp(in void*, in void*)
 {
     throw new Error("TypeInfo.compare is not implemented");
-}
+}*/
 
 void __ctfeWrite(const string s) @nogc @safe pure nothrow {}
 
@@ -3339,7 +3340,7 @@ unittest
 }
 
 /// Provide the .dup array property.
-@property auto dup(T)(T[] a)
+export @property auto dup(T)(T[] a)
     if (!is(const(T) : T))
 {
     import core.internal.traits : Unconst;
@@ -3355,7 +3356,7 @@ unittest
 
 /// ditto
 // const overload to support implicit conversion to immutable (unique result, see DIP29)
-@property T[] dup(T)(const(T)[] a)
+export @property T[] dup(T)(const(T)[] a)
     if (is(const(T) : T))
 {
     // wrap unsafe _dup in @trusted to preserve @safe postblit
@@ -3367,7 +3368,7 @@ unittest
 
 
 /// Provide the .idup array property.
-@property immutable(T)[] idup(T)(T[] a)
+export @property immutable(T)[] idup(T)(T[] a)
 {
     static assert(is(T : immutable(T)), "Cannot implicitly convert type "~T.stringof~
                   " to immutable in idup.");
@@ -3380,7 +3381,7 @@ unittest
 }
 
 /// ditto
-@property immutable(T)[] idup(T:void)(const(T)[] a)
+export @property immutable(T)[] idup(T:void)(const(T)[] a)
 {
     return a.dup;
 }

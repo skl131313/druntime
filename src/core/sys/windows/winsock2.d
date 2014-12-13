@@ -9,6 +9,7 @@ version (Windows):
 
 extern(Windows):
 nothrow:
+export:
 
 alias SOCKET = size_t;
 alias socklen_t = int;

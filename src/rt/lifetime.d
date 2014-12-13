@@ -46,7 +46,7 @@ private
 
 private immutable bool callStructDtorsDuringGC;
 
-extern (C) void lifetime_init()
+extern (C) export void lifetime_init()
 {
     // this is run before static ctors, so it is safe to modify immutables
     import rt.config;
@@ -60,7 +60,7 @@ extern (C) void lifetime_init()
 /**
  *
  */
-extern (C) void* _d_allocmemory(size_t sz)
+extern (C) export void* _d_allocmemory(size_t sz)
 {
     return GC.malloc(sz);
 }
@@ -68,7 +68,7 @@ extern (C) void* _d_allocmemory(size_t sz)
 /**
  *
  */
-extern (C) Object _d_newclass(const ClassInfo ci)
+extern (C) export Object _d_newclass(const ClassInfo ci)
 {
     void* p;
 
@@ -122,7 +122,7 @@ extern (C) Object _d_newclass(const ClassInfo ci)
 /**
  *
  */
-extern (C) void _d_delinterface(void** p)
+extern (C) export void _d_delinterface(void** p)
 {
     if (*p)
     {
@@ -142,7 +142,7 @@ private extern (D) alias void function (Object) fp_t;
 /**
  *
  */
-extern (C) void _d_delclass(Object* p)
+extern (C) export void _d_delclass(Object* p)
 {
     if (*p)
     {
@@ -177,7 +177,7 @@ extern (C) void _d_delclass(Object* p)
  * being deleted is a pointer to a struct with a destructor
  * but doesn't have an overloaded delete operator.
  */
-extern (C) void _d_delstruct(void** p, TypeInfo_Struct inf)
+extern (C) export void _d_delstruct(void** p, TypeInfo_Struct inf)
 {
     if (*p)
     {
@@ -190,7 +190,7 @@ extern (C) void _d_delstruct(void** p, TypeInfo_Struct inf)
 }
 
 // strip const/immutable/shared/inout from type info
-inout(TypeInfo) unqualify(inout(TypeInfo) cti) pure nothrow @nogc
+export inout(TypeInfo) unqualify(inout(TypeInfo) cti) pure nothrow @nogc
 {
     TypeInfo ti = cast() cti;
     while (ti)
@@ -212,7 +212,7 @@ inout(TypeInfo) unqualify(inout(TypeInfo) cti) pure nothrow @nogc
 }
 
 // size used to store the TypeInfo at the end of an allocation for structs that have a destructor
-size_t structTypeInfoSize(const TypeInfo ti) pure nothrow @nogc
+export size_t structTypeInfoSize(const TypeInfo ti) pure nothrow @nogc
 {
     if (!callStructDtorsDuringGC)
         return 0;
@@ -266,7 +266,7 @@ private class ArrayAllocLengthLock
 
   where elem0 starts 16 bytes after the first byte.
   */
-bool __setArrayAllocLength(ref BlkInfo info, size_t newlength, bool isshared, const TypeInfo tinext, size_t oldlength = ~0) pure nothrow
+export bool __setArrayAllocLength(ref BlkInfo info, size_t newlength, bool isshared, const TypeInfo tinext, size_t oldlength = ~0) pure nothrow
 {
     import core.atomic;
 
@@ -371,7 +371,7 @@ bool __setArrayAllocLength(ref BlkInfo info, size_t newlength, bool isshared, co
 /**
   get the allocation size of the array for the given block (without padding or type info)
   */
-size_t __arrayAllocLength(ref BlkInfo info, const TypeInfo tinext) pure nothrow
+export size_t __arrayAllocLength(ref BlkInfo info, const TypeInfo tinext) pure nothrow
 {
     if(info.size <= 256)
         return *cast(ubyte *)(info.base + info.size - structTypeInfoSize(tinext) - SMALLPAD);
@@ -385,7 +385,7 @@ size_t __arrayAllocLength(ref BlkInfo info, const TypeInfo tinext) pure nothrow
 /**
   get the start of the array for the given block
   */
-void *__arrayStart(BlkInfo info) nothrow pure
+export void *__arrayStart(BlkInfo info) nothrow pure
 {
     return info.base + ((info.size & BIGLENGTHMASK) ? LARGEPREFIX : 0);
 }
@@ -395,7 +395,7 @@ void *__arrayStart(BlkInfo info) nothrow pure
   NOT included in the passed in size.  Therefore, do NOT call this function
   with the size of an allocated block.
   */
-size_t __arrayPad(size_t size, const TypeInfo tinext) nothrow pure @trusted
+export size_t __arrayPad(size_t size, const TypeInfo tinext) nothrow pure @trusted
 {
     return size > MAXMEDSIZE ? LARGEPAD : ((size > MAXSMALLSIZE ? MEDPAD : SMALLPAD) + structTypeInfoSize(tinext));
 }
@@ -404,7 +404,7 @@ size_t __arrayPad(size_t size, const TypeInfo tinext) nothrow pure @trusted
   allocate an array memory block by applying the proper padding and
   assigning block attributes if not inherited from the existing block
   */
-BlkInfo __arrayAlloc(size_t arrsize, const TypeInfo ti, const TypeInfo tinext) nothrow pure
+export BlkInfo __arrayAlloc(size_t arrsize, const TypeInfo ti, const TypeInfo tinext) nothrow pure
 {
     size_t typeInfoSize = structTypeInfoSize(tinext);
     size_t padsize = arrsize > MAXMEDSIZE ? LARGEPAD : ((arrsize > MAXSMALLSIZE ? MEDPAD : SMALLPAD) + typeInfoSize);
@@ -418,7 +418,7 @@ BlkInfo __arrayAlloc(size_t arrsize, const TypeInfo ti, const TypeInfo tinext) n
     return GC.qalloc(arrsize + padsize, attr, ti);
 }
 
-BlkInfo __arrayAlloc(size_t arrsize, ref BlkInfo info, const TypeInfo ti, const TypeInfo tinext)
+export BlkInfo __arrayAlloc(size_t arrsize, ref BlkInfo info, const TypeInfo ti, const TypeInfo tinext)
 {
     if (!info.base)
         return __arrayAlloc(arrsize, ti, tinext);
@@ -453,7 +453,7 @@ else
     int __nextBlkIdx;
 }
 
-@property BlkInfo *__blkcache() nothrow
+@property export BlkInfo *__blkcache() nothrow
 {
     if(!__blkcache_storage)
     {
@@ -478,7 +478,7 @@ static ~this()
 
 
 // we expect this to be called with the lock in place
-void processGCMarks(BlkInfo* cache, scope rt.tlsgc.IsMarkedDg isMarked) nothrow
+export void processGCMarks(BlkInfo* cache, scope rt.tlsgc.IsMarkedDg isMarked) nothrow
 {
     // called after the mark routine to eliminate block cache data when it
     // might be ready to sweep
@@ -523,7 +523,7 @@ unittest
         the base ptr as an indication of whether the struct is valid, or set
         the BlkInfo as a side-effect and return a bool to indicate success.
   */
-BlkInfo *__getBlkInfo(void *interior) nothrow
+export BlkInfo *__getBlkInfo(void *interior) nothrow
 {
     BlkInfo *ptr = __blkcache;
     version(single_cache)
@@ -560,7 +560,7 @@ BlkInfo *__getBlkInfo(void *interior) nothrow
     return null; // not in cache.
 }
 
-void __insertBlkInfoCache(BlkInfo bi, BlkInfo *curpos) nothrow
+export void __insertBlkInfoCache(BlkInfo bi, BlkInfo *curpos) nothrow
 {
     version(single_cache)
     {
@@ -628,7 +628,7 @@ void __insertBlkInfoCache(BlkInfo bi, BlkInfo *curpos) nothrow
  * It doesn't matter what the current allocated length of the array is, the
  * user is telling the runtime that he knows what he is doing.
  */
-extern(C) void _d_arrayshrinkfit(const TypeInfo ti, void[] arr) /+nothrow+/
+extern(C) export void _d_arrayshrinkfit(const TypeInfo ti, void[] arr) /+nothrow+/
 {
     // note, we do not care about shared.  We are setting the length no matter
     // what, so no lock is required.
@@ -672,7 +672,7 @@ package bool hasPostblit(in TypeInfo ti)
     return (&ti.postblit).funcptr !is &TypeInfo.postblit;
 }
 
-void __doPostblit(void *ptr, size_t len, const TypeInfo ti)
+export void __doPostblit(void *ptr, size_t len, const TypeInfo ti)
 {
     if (!hasPostblit(ti))
         return;
@@ -709,7 +709,7 @@ void __doPostblit(void *ptr, size_t len, const TypeInfo ti)
  * of 0 to get the current capacity.  Returns the number of elements that can
  * actually be stored once the resizing is done.
  */
-extern(C) size_t _d_arraysetcapacity(const TypeInfo ti, size_t newcapacity, void[]* p)
+extern(C) export size_t _d_arraysetcapacity(const TypeInfo ti, size_t newcapacity, void[]* p)
 in
 {
     assert(ti);
@@ -879,7 +879,7 @@ Lcontinue:
  * Allocate a new uninitialized array of length elements.
  * ti is the type of the resulting array, or pointer to element.
  */
-extern (C) void[] _d_newarrayU(const TypeInfo ti, size_t length) pure nothrow
+extern (C) export void[] _d_newarrayU(const TypeInfo ti, size_t length) pure nothrow
 {
     auto tinext = unqualify(ti.next);
     auto size = tinext.tsize;
@@ -938,7 +938,7 @@ Lcontinue:
  * ti is the type of the resulting array, or pointer to element.
  * (For when the array is initialized to 0)
  */
-extern (C) void[] _d_newarrayT(const TypeInfo ti, size_t length) pure nothrow
+extern (C) export void[] _d_newarrayT(const TypeInfo ti, size_t length) pure nothrow
 {
     void[] result = _d_newarrayU(ti, length);
     auto tinext = unqualify(ti.next);
@@ -951,7 +951,7 @@ extern (C) void[] _d_newarrayT(const TypeInfo ti, size_t length) pure nothrow
 /**
  * For when the array has a non-zero initializer.
  */
-extern (C) void[] _d_newarrayiT(const TypeInfo ti, size_t length) pure nothrow
+extern (C) export void[] _d_newarrayiT(const TypeInfo ti, size_t length) pure nothrow
 {
     import core.internal.traits : TypeTuple;
 
@@ -984,7 +984,7 @@ extern (C) void[] _d_newarrayiT(const TypeInfo ti, size_t length) pure nothrow
 /**
  *
  */
-void[] _d_newarrayOpT(alias op)(const TypeInfo ti, size_t[] dims)
+export void[] _d_newarrayOpT(alias op)(const TypeInfo ti, size_t[] dims)
 {
     debug(PRINTF) printf("_d_newarrayOpT(ndims = %d)\n", dims.length);
     if (dims.length == 0)
@@ -1025,7 +1025,7 @@ void[] _d_newarrayOpT(alias op)(const TypeInfo ti, size_t[] dims)
 /**
  *
  */
-extern (C) void[] _d_newarraymTX(const TypeInfo ti, size_t[] dims)
+extern (C) export void[] _d_newarraymTX(const TypeInfo ti, size_t[] dims)
 {
     debug(PRINTF) printf("_d_newarraymT(dims.length = %d)\n", dims.length);
 
@@ -1041,7 +1041,7 @@ extern (C) void[] _d_newarraymTX(const TypeInfo ti, size_t[] dims)
 /**
  *
  */
-extern (C) void[] _d_newarraymiTX(const TypeInfo ti, size_t[] dims)
+extern (C) export void[] _d_newarraymiTX(const TypeInfo ti, size_t[] dims)
 {
     debug(PRINTF) printf("_d_newarraymiT(dims.length = %d)\n", dims.length);
 
@@ -1057,7 +1057,7 @@ extern (C) void[] _d_newarraymiTX(const TypeInfo ti, size_t[] dims)
  * Allocate an uninitialized non-array item.
  * This is an optimization to avoid things needed for arrays like the __arrayPad(size).
  */
-extern (C) void* _d_newitemU(in TypeInfo _ti)
+extern (C) export void* _d_newitemU(in TypeInfo _ti)
 {
     auto ti = unqualify(_ti);
     auto flags = !(ti.flags & 1) ? BlkAttr.NO_SCAN : 0;
@@ -1076,7 +1076,7 @@ extern (C) void* _d_newitemU(in TypeInfo _ti)
 }
 
 /// Same as above, zero initializes the item.
-extern (C) void* _d_newitemT(in TypeInfo _ti)
+extern (C) export void* _d_newitemT(in TypeInfo _ti)
 {
     auto p = _d_newitemU(_ti);
     memset(p, 0, _ti.tsize);
@@ -1084,7 +1084,7 @@ extern (C) void* _d_newitemT(in TypeInfo _ti)
 }
 
 /// Same as above, for item with non-zero initializer.
-extern (C) void* _d_newitemiT(in TypeInfo _ti)
+extern (C) export void* _d_newitemiT(in TypeInfo _ti)
 {
     auto p = _d_newitemU(_ti);
     auto init = _ti.initializer();
@@ -1096,7 +1096,7 @@ extern (C) void* _d_newitemiT(in TypeInfo _ti)
 /**
  *
  */
-struct Array
+export struct Array
 {
     size_t length;
     byte*  data;
@@ -1106,7 +1106,7 @@ struct Array
 /**
  * This function has been replaced by _d_delarray_t
  */
-extern (C) void _d_delarray(void[]* p)
+extern (C) export void _d_delarray(void[]* p)
 {
     _d_delarray_t(p, null);
 }
@@ -1127,7 +1127,7 @@ debug(PRINTF)
 /**
  *
  */
-extern (C) void _d_delarray_t(void[]* p, const TypeInfo_Struct ti)
+extern (C) export void _d_delarray_t(void[]* p, const TypeInfo_Struct ti)
 {
     if (p)
     {
@@ -1182,7 +1182,7 @@ unittest
 /**
  *
  */
-extern (C) void _d_delmemory(void* *p)
+extern (C) export void _d_delmemory(void* *p)
 {
     if (*p)
     {
@@ -1195,7 +1195,7 @@ extern (C) void _d_delmemory(void* *p)
 /**
  *
  */
-extern (C) void _d_callinterfacefinalizer(void *p)
+extern (C) export void _d_callinterfacefinalizer(void *p)
 {
     if (p)
     {
@@ -1209,7 +1209,7 @@ extern (C) void _d_callinterfacefinalizer(void *p)
 /**
  *
  */
-extern (C) void _d_callfinalizer(void* p)
+extern (C) export void _d_callfinalizer(void* p)
 {
     rt_finalize( p );
 }
@@ -1218,7 +1218,7 @@ extern (C) void _d_callfinalizer(void* p)
 /**
  *
  */
-extern (C) void rt_setCollectHandler(CollectHandler h)
+extern (C) export void rt_setCollectHandler(CollectHandler h)
 {
     collectHandler = h;
 }
@@ -1227,7 +1227,7 @@ extern (C) void rt_setCollectHandler(CollectHandler h)
 /**
  *
  */
-extern (C) CollectHandler rt_getCollectHandler()
+extern (C) export CollectHandler rt_getCollectHandler()
 {
     return collectHandler;
 }
@@ -1236,7 +1236,7 @@ extern (C) CollectHandler rt_getCollectHandler()
 /**
  *
  */
-extern (C) int rt_hasFinalizerInSegment(void* p, size_t size, uint attr, in void[] segment) nothrow
+extern (C) export int rt_hasFinalizerInSegment(void* p, size_t size, uint attr, in void[] segment) nothrow
 {
     if (attr & BlkAttr.STRUCTFINAL)
     {
@@ -1261,7 +1261,7 @@ extern (C) int rt_hasFinalizerInSegment(void* p, size_t size, uint attr, in void
     return false;
 }
 
-int hasStructFinalizerInSegment(void* p, size_t size, in void[] segment) nothrow
+export int hasStructFinalizerInSegment(void* p, size_t size, in void[] segment) nothrow
 {
     if(!p)
         return false;
@@ -1270,7 +1270,7 @@ int hasStructFinalizerInSegment(void* p, size_t size, in void[] segment) nothrow
     return cast(size_t)(cast(void*)ti.xdtor - segment.ptr) < segment.length;
 }
 
-int hasArrayFinalizerInSegment(void* p, size_t size, in void[] segment) nothrow
+export int hasArrayFinalizerInSegment(void* p, size_t size, in void[] segment) nothrow
 {
     if(!p)
         return false;
@@ -1349,7 +1349,7 @@ void finalize_struct(void* p, size_t size) nothrow
 /**
  *
  */
-extern (C) void rt_finalize2(void* p, bool det = true, bool resetMemory = true) nothrow
+extern (C) export void rt_finalize2(void* p, bool det = true, bool resetMemory = true) nothrow
 {
     debug(PRINTF) printf("rt_finalize2(p = %p)\n", p);
 
@@ -1390,7 +1390,7 @@ extern (C) void rt_finalize2(void* p, bool det = true, bool resetMemory = true) 
     }
 }
 
-extern (C) void rt_finalize(void* p, bool det = true)
+extern (C) export void rt_finalize(void* p, bool det = true)
 {
     rt_finalize2(p, det, true);
 }
@@ -1410,7 +1410,7 @@ extern (C) void rt_finalizeFromGC(void* p, size_t size, uint attr)
 /**
  * Resize dynamic arrays with 0 initializers.
  */
-extern (C) void[] _d_arraysetlengthT(const TypeInfo ti, size_t newlength, void[]* p)
+extern (C) export void[] _d_arraysetlengthT(const TypeInfo ti, size_t newlength, void[]* p)
 in
 {
     assert(ti);
@@ -1594,7 +1594,7 @@ Loverflow:
  *      initsize        size of initializer
  *      ...             initializer
  */
-extern (C) void[] _d_arraysetlengthiT(const TypeInfo ti, size_t newlength, void[]* p)
+extern (C) export void[] _d_arraysetlengthiT(const TypeInfo ti, size_t newlength, void[]* p)
 in
 {
     assert(!(*p).length || (*p).ptr);
@@ -1791,7 +1791,7 @@ Loverflow:
 /**
  * Append y[] to array x[]
  */
-extern (C) void[] _d_arrayappendT(const TypeInfo ti, ref byte[] x, byte[] y)
+extern (C) export void[] _d_arrayappendT(const TypeInfo ti, ref byte[] x, byte[] y)
 {
     auto length = x.length;
     auto tinext = unqualify(ti.next);
@@ -1808,7 +1808,7 @@ extern (C) void[] _d_arrayappendT(const TypeInfo ti, ref byte[] x, byte[] y)
 /**
  *
  */
-size_t newCapacity(size_t newlength, size_t size)
+export size_t newCapacity(size_t newlength, size_t size)
 {
     version(none)
     {
@@ -1890,7 +1890,7 @@ size_t newCapacity(size_t newlength, size_t size)
  * Extend an array by n elements.
  * Caller must initialize those elements.
  */
-extern (C)
+extern (C) export
 byte[] _d_arrayappendcTX(const TypeInfo ti, ref byte[] px, size_t n)
 {
     // This is a cut&paste job from _d_arrayappendT(). Should be refactored.
@@ -1994,7 +1994,7 @@ byte[] _d_arrayappendcTX(const TypeInfo ti, ref byte[] px, size_t n)
 /**
  * Append dchar to char[]
  */
-extern (C) void[] _d_arrayappendcd(ref byte[] x, dchar c)
+extern (C) export void[] _d_arrayappendcd(ref byte[] x, dchar c)
 {
     // c could encode into from 1 to 4 characters
     char[4] buf = void;
@@ -2071,7 +2071,7 @@ unittest
 /**
  * Append dchar to wchar[]
  */
-extern (C) void[] _d_arrayappendwd(ref byte[] x, dchar c)
+extern (C) export void[] _d_arrayappendwd(ref byte[] x, dchar c)
 {
     // c could encode into from 1 to 2 w characters
     wchar[2] buf = void;
@@ -2104,7 +2104,7 @@ extern (C) void[] _d_arrayappendwd(ref byte[] x, dchar c)
 /**
  *
  */
-extern (C) byte[] _d_arraycatT(const TypeInfo ti, byte[] x, byte[] y)
+extern (C) export byte[] _d_arraycatT(const TypeInfo ti, byte[] x, byte[] y)
 out (result)
 {
     auto tinext = unqualify(ti.next);
@@ -2169,7 +2169,7 @@ body
 /**
  *
  */
-extern (C) void[] _d_arraycatnTX(const TypeInfo ti, byte[][] arrs)
+extern (C) export void[] _d_arraycatnTX(const TypeInfo ti, byte[][] arrs)
 {
     size_t length;
     auto tinext = unqualify(ti.next);
@@ -2207,7 +2207,7 @@ extern (C) void[] _d_arraycatnTX(const TypeInfo ti, byte[][] arrs)
 /**
  * Allocate the array, rely on the caller to do the initialization of the array.
  */
-extern (C)
+extern (C) export
 void* _d_arrayliteralTX(const TypeInfo ti, size_t length)
 {
     auto tinext = unqualify(ti.next);

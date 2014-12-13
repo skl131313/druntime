@@ -1690,7 +1690,7 @@ private struct Demangle
  *  The demangled name or the original string if the name is not a mangled D
  *  name.
  */
-char[] demangle( const(char)[] buf, char[] dst = null )
+export char[] demangle( const(char)[] buf, char[] dst = null )
 {
     //return Demangle(buf, dst)();
     auto d = Demangle(buf, dst);
@@ -1709,7 +1709,7 @@ char[] demangle( const(char)[] buf, char[] dst = null )
  *  The demangled type name or the original string if the name is not a
  *  mangled D type.
 */
-char[] demangleType( const(char)[] buf, char[] dst = null )
+export char[] demangleType( const(char)[] buf, char[] dst = null )
 {
     auto d = Demangle(buf, dst);
     return d.demangleType();
@@ -1728,7 +1728,7 @@ char[] demangleType( const(char)[] buf, char[] dst = null )
  *  The mangled name for a symbols of type T and the given fully
  *  qualified name.
  */
-char[] mangle(T)(const(char)[] fqn, char[] dst = null) @safe pure nothrow
+char[] mangle(T)(const(char)[] fqn, char[] dst = null) @safe pure nothrow export
 {
     import core.internal.string : numDigits, unsignedToTempString;
 
@@ -1814,7 +1814,7 @@ unittest
  *  The mangled name for a function with function pointer type T and
  *  the given fully qualified name.
  */
-char[] mangleFunc(T:FT*, FT)(const(char)[] fqn, char[] dst = null) @safe pure nothrow if (is(FT == function))
+char[] mangleFunc(T:FT*, FT)(const(char)[] fqn, char[] dst = null) @safe pure nothrow export if (is(FT == function))
 {
     static if (isExternD!FT)
     {
@@ -1995,7 +1995,7 @@ unittest
 /*
  *
  */
-string decodeDmdString( const(char)[] ln, ref size_t p )
+export string decodeDmdString( const(char)[] ln, ref size_t p )
 {
     string s;
     uint zlen, zpos;

@@ -1017,7 +1017,6 @@ export class TypeInfo_Class : TypeInfo
                         return c;
                 }
             }
-          }
         }
         return null;
     }
@@ -3224,12 +3223,12 @@ unittest
 bool _xopEquals(in void*, in void*)
 {
     throw new Error("TypeInfo.equals is not implemented");
-}*/
+}
 
-/*bool _xopCmp(in void*, in void*)
+bool _xopCmp(in void*, in void*)
 {
     throw new Error("TypeInfo.compare is not implemented");
-}*/
+}
 
 void __ctfeWrite(const string s) @nogc @safe pure nothrow {}
 

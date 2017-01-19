@@ -12,7 +12,7 @@
  *    (See accompanying file LICENSE or copy at
  *          http://www.boost.org/LICENSE_1_0.txt)
  */
-module core.runtime;
+export module core.runtime;
 
 version (Windows) import core.stdc.wchar_ : wchar_t;
 

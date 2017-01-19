@@ -9,7 +9,7 @@
  * Source: $(DRUNTIMESRC src/core/sys/windows/_dll.d)
  */
 
-module core.sys.windows.dll;
+export module core.sys.windows.dll;
 version (Windows):
 
 import core.sys.windows.windows;

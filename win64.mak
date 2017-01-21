@@ -2,8 +2,10 @@
 
 MODEL=64
 
-VCDIR=\Program Files (x86)\Microsoft Visual Studio 10.0\VC
-SDKDIR=\Program Files (x86)\Microsoft SDKs\Windows\v7.0A
+VCDIR=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC
+SDKDIR=C:\Program Files (x86)\Windows Kits\10
+UNIVERSALCRTSDKDIR=C:\Program Files (x86)\Windows Kits\10
+UCRTVERSION=10.0.14393.0
 
 DMD=dmd
 
@@ -21,8 +23,8 @@ DFLAGS=-m$(MODEL) -conf= -O -release -dip1000 -inline -w -Isrc -Iimport
 UDFLAGS=-m$(MODEL) -conf= -O -release -dip1000 -w -Isrc -Iimport
 DDOCFLAGS=-conf= -c -w -o- -Isrc -Iimport -version=CoreDdoc
 
-#CFLAGS=/O2 /I"$(VCDIR)"\INCLUDE /I"$(SDKDIR)"\Include
-CFLAGS=/Z7 /I"$(VCDIR)"\INCLUDE /I"$(SDKDIR)"\Include
+#CFLAGS=/O2 /I"$(VCDIR)"\INCLUDE /I\"$(UNIVERSALCRTSDKDIR)\Include\$(UCRTVERSION)\ucrt\"
+CFLAGS=/Z7 /I"$(VCDIR)"\INCLUDE /I\"$(UNIVERSALCRTSDKDIR)\Include\$(UCRTVERSION)\ucrt\"
 
 DRUNTIME_BASE=druntime$(MODEL)
 DRUNTIME=lib\$(DRUNTIME_BASE).lib
@@ -1279,8 +1281,15 @@ $(DRUNTIME): $(OBJS) msvc_renames_$(MODEL).obj $(SRCS) win64.mak src\core\sys\wi
 	
 # standalone version of shared druntime
 $(DRUNTIME_SHARED) : $(OBJS) $(DLLFIXUP) $(SRCS) src\rt\dllmain.d win64.mak
-	$(DMD) -of$(DRUNTIME_SHARED_DLL) -version=Shared -shared $(DFLAGS) $(SRCS) src\rt\dllmain.d -defaultlib="msvcrt" $(OBJS) $(DLLFIXUP) -L/IMPLIB:$(DRUNTIME_SHARED) user32.lib -L/NODEFAULTLIB:libcmt
-	$(AR) /OUT:$(DRUNTIME_SHARED) $(DRUNTIME_SHARED) $(DLLFIXUP)
+	SET LINKCMD=$(VCDIR)\bin\link.exe
+	SET VCINSTALLDIR=$(VCDIR)
+	SET UniversalCRTSdkDir=$(UNIVERSALCRTSDKDIR)
+	SET UCRTVersion=$(UCRTVERSION)
+	SET WindowsSdkDir=$(SDKDIR)
+	SET LIB="$(UNIVERSALCRTSDKDIR)\Lib\$(UCRTVERSION)\um\x64";"$(UNIVERSALCRTSDKDIR)\Lib\$(UCRTVERSION)\ucrt\x64"
+	echo %LIB%
+	$(DMD) -of$(DRUNTIME_SHARED_DLL) -version=Shared -shared $(DFLAGS) $(SRCS) src\rt\dllmain.d -defaultlib="msvcrt" $(OBJS) $(DLLFIXUP) -L/IMPLIB:tmp\imp_$(DRUNTIME_BASE).lib user32.lib -L/NODEFAULTLIB:libcmt
+	$(AR) /OUT:$(DRUNTIME_SHARED) tmp\imp_$(DRUNTIME_BASE).lib $(DLLFIXUP)
 
 # shared version to be linked into shared version of phobos
 $(DRUNTIME_SHARED_OBJ) : $(SRCS) src\rt\dllmain.d win64.mak

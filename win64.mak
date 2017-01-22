@@ -3,9 +3,10 @@
 MODEL=64
 
 VCDIR=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC
-SDKDIR=C:\Program Files (x86)\Windows Kits\10
+WINDOWSSDKDIR=C:\Program Files (x86)\Windows Kits\10
 UNIVERSALCRTSDKDIR=C:\Program Files (x86)\Windows Kits\10
 UCRTVERSION=10.0.14393.0
+LIBSUBDIR=x64
 
 DMD=dmd
 
@@ -23,8 +24,8 @@ DFLAGS=-m$(MODEL) -conf= -O -release -dip1000 -inline -w -Isrc -Iimport
 UDFLAGS=-m$(MODEL) -conf= -O -release -dip1000 -w -Isrc -Iimport
 DDOCFLAGS=-conf= -c -w -o- -Isrc -Iimport -version=CoreDdoc
 
-#CFLAGS=/O2 /I"$(VCDIR)"\INCLUDE /I\"$(UNIVERSALCRTSDKDIR)\Include\$(UCRTVERSION)\ucrt\"
-CFLAGS=/Z7 /I"$(VCDIR)"\INCLUDE /I\"$(UNIVERSALCRTSDKDIR)\Include\$(UCRTVERSION)\ucrt\"
+#CFLAGS=/O2 /I"$(VCDIR)"\INCLUDE /I\"$(UNIVERSALCRTSDKDIR)\Include\$(UCRTVERSION)\ucrt\" /I"$(WINDOWSSDKDIR)"\Include
+CFLAGS=/Z7 /I"$(VCDIR)"\INCLUDE /I"$(UNIVERSALCRTSDKDIR)\Include\$(UCRTVERSION)\ucrt" /I"$(WINDOWSSDKDIR)"\Include
 
 DRUNTIME_BASE=druntime$(MODEL)
 DRUNTIME=lib\$(DRUNTIME_BASE).lib
@@ -1285,9 +1286,8 @@ $(DRUNTIME_SHARED) : $(OBJS) $(DLLFIXUP) $(SRCS) src\rt\dllmain.d win64.mak
 	SET VCINSTALLDIR=$(VCDIR)
 	SET UniversalCRTSdkDir=$(UNIVERSALCRTSDKDIR)
 	SET UCRTVersion=$(UCRTVERSION)
-	SET WindowsSdkDir=$(SDKDIR)
-	SET LIB="$(UNIVERSALCRTSDKDIR)\Lib\$(UCRTVERSION)\um\x64";"$(UNIVERSALCRTSDKDIR)\Lib\$(UCRTVERSION)\ucrt\x64"
-	echo %LIB%
+	SET WindowsSdkDir=$(WINDOWSSDKDIR)
+	SET LIB="$(UNIVERSALCRTSDKDIR)\Lib\$(UCRTVERSION)\um\$(LIBSUBDIR)";"$(UNIVERSALCRTSDKDIR)\Lib\$(UCRTVERSION)\ucrt\$(LIBSUBDIR)"
 	$(DMD) -of$(DRUNTIME_SHARED_DLL) -version=Shared -shared $(DFLAGS) $(SRCS) src\rt\dllmain.d -defaultlib="msvcrt" $(OBJS) $(DLLFIXUP) -L/IMPLIB:tmp\imp_$(DRUNTIME_BASE).lib user32.lib -L/NODEFAULTLIB:libcmt
 	$(AR) /OUT:$(DRUNTIME_SHARED) tmp\imp_$(DRUNTIME_BASE).lib $(DLLFIXUP)
 

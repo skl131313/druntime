@@ -6,7 +6,7 @@ import core.sys.windows.dll;
 import core.stdc.stdio;
 import core.runtime;
 
-debug = PRINTF;
+//debug = PRINTF;
 
 /**
  * Special version of DllMain for druntime / phobos. 

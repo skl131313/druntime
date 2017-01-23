@@ -920,7 +920,7 @@ int _d_global_unwind(DEstablisherFrame *pFrame, EXCEPTION_RECORD *eRecord)
  * This is used for 'goto' or 'return', to run any finally blocks
  * which were skipped.
  */
-extern(C)
+export extern(C)
 void _d_local_unwind2()
 {
     asm

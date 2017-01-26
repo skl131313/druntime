@@ -1270,8 +1270,8 @@ $(GCSTUB) : src\gcstub\gc.d win64.mak
 # To do that its merged with the import library of the runtime.
 
 $(DLLFIXUP) : src\core\sys\windows\dllfixup.d msvc_renames_$(MODEL).obj win64.mak
-	$(DMD) -of$(DLLFIXUP) -version=Shared src\core\sys\windows\dllfixup.d $(DFLAGS) -lib
-	$(AR) /OUT:$(DLLFIXUP) $(DLLFIXUP) msvc_renames_$(MODEL).obj
+	$(DMD) -ofdllfixupTmp$(MODEL).lib -version=Shared src\core\sys\windows\dllfixup.d $(DFLAGS) -lib
+	$(AR) /OUT:$(DLLFIXUP) dllfixupTmp$(MODEL).lib msvc_renames_$(MODEL).obj
 
 
 ################### Library generation #########################
@@ -1330,7 +1330,8 @@ install: druntime.zip
 	unzip -o druntime.zip -d \dmd2\src\druntime
 
 clean:
-	del $(DRUNTIME) $(OBJS_TO_DELETE) $(GCSTUB) $(DLLFIXUP)
+	del $(DRUNTIME) $(OBJS_TO_DELETE) $(GCSTUB) 
+	del $(DLLFIXUP) $(DRUNTIME_SHARED_OBJ) $(DRUNTIME_SHARED_OBJ_LIST) $(DRUNTIME_SHARED)
 	rmdir /S /Q $(DOCDIR) $(IMPDIR)
 
 auto-tester-build: target

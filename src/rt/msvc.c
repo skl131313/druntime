@@ -11,6 +11,11 @@
 */
 
 #include "msvc.h"
+#ifdef SHARED
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT
+#endif
 
 struct _iobuf
 {
@@ -74,7 +79,7 @@ int _flsbuf(int c, FILE* fp);
 DECLARE_ALTERNATE_NAME (_filbuf, _nullfunc);
 DECLARE_ALTERNATE_NAME (_flsbuf, _nullfunc);
 
-__declspec(dllexport) int _msvc_fputc_nolock(int c, FILE* fp)
+EXPORT int _msvc_fputc_nolock(int c, FILE* fp)
 {
     fp->_cnt = fp->_cnt - 1;
     if (fp->_cnt >= 0)
@@ -87,7 +92,7 @@ __declspec(dllexport) int _msvc_fputc_nolock(int c, FILE* fp)
         return _flsbuf(c, fp);
 }
 
-__declspec(dllexport) int _msvc_fgetc_nolock(FILE* fp)
+EXPORT int _msvc_fgetc_nolock(FILE* fp)
 {
     fp->_cnt = fp->_cnt - 1;
     if (fp->_cnt >= 0)
@@ -109,28 +114,28 @@ enum
 
 int fseek(FILE* fp, long off, int whence);
 
-__declspec(dllexport) void _msvc_rewind(FILE* stream)
+EXPORT void _msvc_rewind(FILE* stream)
 {
     fseek(stream, 0L, SEEK_SET);
     stream->_flag = stream->_flag & ~_IOERR;
 }
 
-__declspec(dllexport) void _msvc_clearerr(FILE* stream)
+EXPORT void _msvc_clearerr(FILE* stream)
 {
     stream->_flag = stream->_flag & ~(_IOERR | _IOEOF);
 }
 
-__declspec(dllexport) int  _msvc_feof(FILE* stream)
+EXPORT int  _msvc_feof(FILE* stream)
 {
     return stream->_flag & _IOEOF;
 }
 
-__declspec(dllexport) int  _msvc_ferror(FILE* stream)
+EXPORT int  _msvc_ferror(FILE* stream)
 {
     return stream->_flag & _IOERR;
 }
 
-__declspec(dllexport) int  _msvc_fileno(FILE* stream)
+EXPORT int  _msvc_fileno(FILE* stream)
 {
     return stream->_file;
 }

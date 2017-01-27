@@ -51,8 +51,8 @@ $(mak\SRCS)
 # NOTE: trace.d and cover.d are not necessary for a successful build
 #       as both are used for debugging features (profiling and coverage)
 
-OBJS= errno_c_$(MODEL).obj msvc_$(MODEL).obj msvc_math_$(MODEL).obj
-OBJS_TO_DELETE= errno_c_$(MODEL).obj msvc_$(MODEL).obj msvc_math_$(MODEL).obj msvc_renames_$(MODEL).obj
+OBJS= errno_c_$(MODEL).obj msvc_math_$(MODEL).obj
+OBJS_TO_DELETE= errno_c_$(MODEL).obj msvc_$(MODEL).obj msvc_$(MODEL)_shared.obj msvc_math_$(MODEL).obj msvc_renames_$(MODEL).obj 
 
 ######################## Doc .html file generation ##############################
 
@@ -1255,6 +1255,9 @@ msvc_renames_$(MODEL).obj : src\rt\msvc_renames.c src\rt\msvc.h win64.mak
 	
 msvc_$(MODEL).obj : src\rt\msvc.c src\rt\msvc.h win64.mak
 	$(CC) -c -Fo$@ $(CFLAGS) src\rt\msvc.c
+	
+msvc_$(MODEL)_shared.obj : src\rt\msvc.c src\rt\msvc.h win64.mak
+	$(CC) -c -Fo$@ $(CFLAGS) /DSHARED src\rt\msvc.c
 
 msvc_math_$(MODEL).obj : src\rt\msvc_math.c win64.mak
 	$(CC) -c -Fo$@ $(CFLAGS) src\rt\msvc_math.c
@@ -1277,26 +1280,26 @@ $(DLLFIXUP) : src\core\sys\windows\dllfixup.d msvc_renames_$(MODEL).obj win64.ma
 ################### Library generation #########################
 
 # static version of druntime
-$(DRUNTIME): $(OBJS) msvc_renames_$(MODEL).obj $(SRCS) win64.mak src\core\sys\windows\dllfixup.d 
-	$(DMD) -lib -of$(DRUNTIME) -Xfdruntime.json $(DFLAGS) $(SRCS) src\core\sys\windows\dllfixup.d $(OBJS) msvc_renames_$(MODEL).obj
+$(DRUNTIME): $(OBJS) msvc_$(MODEL).obj msvc_renames_$(MODEL).obj $(SRCS) win64.mak src\core\sys\windows\dllfixup.d 
+	$(DMD) -lib -of$(DRUNTIME) -Xfdruntime.json $(DFLAGS) $(SRCS) src\core\sys\windows\dllfixup.d $(OBJS) msvc_$(MODEL).obj msvc_renames_$(MODEL).obj
 	
 # standalone version of shared druntime
-$(DRUNTIME_SHARED) : $(OBJS) $(DLLFIXUP) $(SRCS) src\rt\dllmain.d win64.mak
+$(DRUNTIME_SHARED) : $(OBJS) msvc_$(MODEL)_shared.obj $(DLLFIXUP) $(SRCS) src\rt\dllmain.d win64.mak
 	SET LINKCMD=$(VCDIR)\bin\link.exe
 	SET VCINSTALLDIR=$(VCDIR)
 	SET UniversalCRTSdkDir=$(UNIVERSALCRTSDKDIR)
 	SET UCRTVersion=$(UCRTVERSION)
 	SET WindowsSdkDir=$(WINDOWSSDKDIR)
 	SET LIB="$(UNIVERSALCRTSDKDIR)\Lib\$(UCRTVERSION)\um\$(LIBSUBDIR)";"$(UNIVERSALCRTSDKDIR)\Lib\$(UCRTVERSION)\ucrt\$(LIBSUBDIR)"
-	$(DMD) -of$(DRUNTIME_SHARED_DLL) -version=Shared -shared $(DFLAGS) $(SRCS) src\rt\dllmain.d -defaultlib="msvcrt" $(OBJS) $(DLLFIXUP) -L/IMPLIB:tmp\imp_$(DRUNTIME_BASE).lib user32.lib -L/NODEFAULTLIB:libcmt
+	$(DMD) -of$(DRUNTIME_SHARED_DLL) -version=Shared -shared $(DFLAGS) $(SRCS) src\rt\dllmain.d -defaultlib="msvcrt" $(OBJS) msvc_$(MODEL)_shared.obj $(DLLFIXUP) -L/IMPLIB:tmp\imp_$(DRUNTIME_BASE).lib user32.lib -L/NODEFAULTLIB:libcmt
 	$(AR) /OUT:$(DRUNTIME_SHARED) tmp\imp_$(DRUNTIME_BASE).lib $(DLLFIXUP)
 
 # shared version to be linked into shared version of phobos
 $(DRUNTIME_SHARED_OBJ) : $(SRCS) src\rt\dllmain.d win64.mak
 	$(DMD) -c -of$(DRUNTIME_SHARED_OBJ) -version=Shared -shared $(DFLAGS) $(SRCS) src\rt\dllmain.d -defaultlib="msvcrt"
 	
-$(DRUNTIME_SHARED_OBJ_LIST) : win64.mak makeObjList.bat $(OBJS) $(DRUNTIME_SHARED_OBJ)
-	makeObjList.bat $(OBJS) $(DRUNTIME_SHARED_OBJ) > $(DRUNTIME_SHARED_OBJ_LIST)
+$(DRUNTIME_SHARED_OBJ_LIST) : win64.mak makeObjList.bat $(OBJS) msvc_$(MODEL)_shared.obj $(DRUNTIME_SHARED_OBJ)
+	makeObjList.bat $(OBJS) msvc_$(MODEL)_shared.obj $(DRUNTIME_SHARED_OBJ) > $(DRUNTIME_SHARED_OBJ_LIST)
 
 	
 

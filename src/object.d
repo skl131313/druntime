@@ -3220,12 +3220,12 @@ unittest
     assert(hashOf(a) == hashOf(b));
 }
 
-bool _xopEquals(in void*, in void*)
+export bool _xopEquals(in void*, in void*)
 {
     throw new Error("TypeInfo.equals is not implemented");
 }
 
-bool _xopCmp(in void*, in void*)
+export bool _xopCmp(in void*, in void*)
 {
     throw new Error("TypeInfo.compare is not implemented");
 }

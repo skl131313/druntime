@@ -31,14 +31,14 @@ DRUNTIME_SHARED_OBJ=lib\$(DRUNTIME_BASE)s.obj
 DRUNTIME_SHARED_C_LIB=lib\$(DRUNTIME_BASE)s_c.lib
 DRUNTIME_SHARED_DLL=bin\$(DRUNTIME_BASE)s.dll
 GCSTUB=lib\gcstub$(MODEL).obj
-DLLFIXUP=lib\dllfixup$(MODEL).lib
+DLLINIT=lib\dllinit$(MODEL).lib
 
 # do not preselect a C runtime (extracted from the line above to make the auto tester happy)
 CFLAGS=$(CFLAGS) /Zl
 
 DOCFMT=
 
-target : import copydir copy $(DRUNTIME) $(GCSTUB) $(DRUNTIME_SHARED_OBJ) $(DRUNTIME_SHARED_C_LIB) $(DLLFIXUP)
+target : import copydir copy $(DRUNTIME) $(GCSTUB) $(DRUNTIME_SHARED_OBJ) $(DRUNTIME_SHARED_C_LIB) $(DLLINIT)
 
 $(mak\COPY)
 $(mak\DOCS)
@@ -1218,7 +1218,7 @@ $(IMPDIR)\core\sys\windows\winreg.d : src\core\sys\windows\winreg.d
 $(IMPDIR)\core\sys\windows\winsock2.d : src\core\sys\windows\winsock2.d
 	copy $** $@
 	
-$(IMPDIR)\core\sys\windows\dllfixup.d : src\core\sys\windows\dllfixup.d
+$(IMPDIR)\core\sys\windows\dllinit.d : src\core\sys\windows\dllinit.d
 	copy $** $@
 
 $(IMPDIR)\core\sys\windows\winspool.d : src\core\sys\windows\winspool.d
@@ -1264,26 +1264,26 @@ msvc_math_$(MODEL).obj : src\rt\msvc_math.c win64.mak
 $(GCSTUB) : src\gcstub\gc.d win64.mak
 	$(DMD) -c -of$(GCSTUB) src\gcstub\gc.d $(DFLAGS)
 	
-################### dllfixup generation #########################
-# dllfixup.d needs to be compiled into a static lib and linked into 
+################### dllinit generation #########################
+# dllinit.d needs to be compiled into a static lib and linked into 
 # each d binary so it can access the executables sections.
 # To do that its merged with the import library of the runtime.
 
-$(DLLFIXUP) : src\core\sys\windows\dllfixup.d msvc_renames_$(MODEL).obj win64.mak
-	$(DMD) -ofdllfixupTmp$(MODEL).lib -version=Shared src\core\sys\windows\dllfixup.d $(DFLAGS) -lib
-	$(AR) /OUT:$(DLLFIXUP) dllfixupTmp$(MODEL).lib msvc_renames_$(MODEL).obj
+$(DLLINIT) : src\core\sys\windows\dllinit.d msvc_renames_$(MODEL).obj win64.mak
+	$(DMD) -ofdllinitTmp$(MODEL).lib -version=Shared src\core\sys\windows\dllinit.d $(DFLAGS) -lib
+	$(AR) /OUT:$(DLLINIT) dllinitTmp$(MODEL).lib msvc_renames_$(MODEL).obj
 
 
 ################### Library generation #########################
 
 # static version of druntime
-$(DRUNTIME): $(OBJS) msvc_$(MODEL).obj msvc_renames_$(MODEL).obj $(SRCS) win64.mak src\core\sys\windows\dllfixup.d 
-	$(DMD) -lib -of$(DRUNTIME) -Xfdruntime.json $(DFLAGS) $(SRCS) src\core\sys\windows\dllfixup.d $(OBJS) msvc_$(MODEL).obj msvc_renames_$(MODEL).obj
+$(DRUNTIME): $(OBJS) msvc_$(MODEL).obj msvc_renames_$(MODEL).obj $(SRCS) win64.mak src\core\sys\windows\dllinit.d 
+	$(DMD) -lib -of$(DRUNTIME) -Xfdruntime.json $(DFLAGS) $(SRCS) src\core\sys\windows\dllinit.d $(OBJS) msvc_$(MODEL).obj msvc_renames_$(MODEL).obj
 	
 # standalone version of shared druntime
-$(DRUNTIME_SHARED) : $(OBJS) msvc_$(MODEL)_shared.obj $(DLLFIXUP) $(SRCS) src\rt\dllmain.d win64.mak
-	$(DMD) -of$(DRUNTIME_SHARED_DLL) -version=Shared -shared $(DFLAGS) $(SRCS) src\rt\dllmain.d $(OBJS) msvc_$(MODEL)_shared.obj $(DLLFIXUP) -L/IMPLIB:tmp\imp_$(DRUNTIME_BASE).lib user32.lib
-	$(AR) /OUT:$(DRUNTIME_SHARED) tmp\imp_$(DRUNTIME_BASE).lib $(DLLFIXUP)
+$(DRUNTIME_SHARED) : $(OBJS) msvc_$(MODEL)_shared.obj $(DLLINIT) $(SRCS) src\rt\dllmain.d win64.mak
+	$(DMD) -of$(DRUNTIME_SHARED_DLL) -version=Shared -shared $(DFLAGS) $(SRCS) src\rt\dllmain.d $(OBJS) msvc_$(MODEL)_shared.obj $(DLLINIT) -L/IMPLIB:tmp\imp_$(DRUNTIME_BASE).lib user32.lib
+	$(AR) /OUT:$(DRUNTIME_SHARED) tmp\imp_$(DRUNTIME_BASE).lib $(DLLINIT)
 
 # shared version to be linked into shared version of phobos
 $(DRUNTIME_SHARED_OBJ) : $(SRCS) src\rt\dllmain.d win64.mak
@@ -1328,7 +1328,7 @@ install: druntime.zip
 
 clean:
 	del $(DRUNTIME) $(OBJS_TO_DELETE) $(GCSTUB) 
-	del $(DLLFIXUP) $(DRUNTIME_SHARED_OBJ) $(DRUNTIME_SHARED_C_LIB) $(DRUNTIME_SHARED)
+	del $(DLLINIT) $(DRUNTIME_SHARED_OBJ) $(DRUNTIME_SHARED_C_LIB) $(DRUNTIME_SHARED)
 	rmdir /S /Q $(DOCDIR) $(IMPDIR)
 
 auto-tester-build: target

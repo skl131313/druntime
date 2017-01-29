@@ -348,8 +348,34 @@ private:
     }
 
 
-    export extern(C) void _d_dll_registry_register(void* hModule, void* pminfo_beg, void* pminfo_end, void* pdeh_beg, void* pdeh_end, void* p__ImageBase, void[] function() getTlsRange)
+    export extern(C) void _d_dll_registry_register(void* hModule, void* pdllrl_beg, void* pdllrl_end, void* pminfo_beg, void* pminfo_end, void* pdeh_beg, void* pdeh_end, void* p__ImageBase, void[] function() getTlsRange)
     {
+        // First relocate all pointers in data sections
+        {
+            void** begin = cast(void**)pdllrl_beg;
+            void** end = cast(void**)pdllrl_end;
+            void** outer = begin;
+            while(outer < end && *outer is null) outer++; // skip leading 0s
+            while(outer < end)
+            {
+                if(*outer !is null) // skip any padding
+                {
+                    // The address is stored as a 32-bit offset
+                    int* start = cast(int*)outer;
+                    int relAddress = (*start) + 4; // take size of the offset into account as well
+                    int offset = *(start+1);
+                    void** reconstructedAddress = cast(void**)(cast(void*)start + relAddress);
+                    debug(PRINTF) printf("patching %p to %p (offset %d)\n", reconstructedAddress, (**cast(void***)reconstructedAddress), offset);
+                    *reconstructedAddress = (**cast(void***)reconstructedAddress) + offset;
+                    outer += 8 / (void*).sizeof;
+                }
+                else
+                {
+                    outer++;
+                }
+            }
+        }
+    
         {
             SectionGroup dllSection;
             dllSection._moduleGroup = ModuleGroup(getModuleInfos(pminfo_beg, pminfo_end));

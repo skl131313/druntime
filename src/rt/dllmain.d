@@ -1,7 +1,7 @@
 module core.sys.windows.dllmain;
 
 import core.sys.windows.windows;
-import core.sys.windows.dllfixup;
+import core.sys.windows.dllinit;
 import core.sys.windows.dll;
 import core.stdc.stdio;
 import core.runtime;
@@ -18,7 +18,7 @@ BOOL DllMain(HINSTANCE hInstance, ULONG ulReason, LPVOID pvReserved)
   switch(ulReason)
   {
       case DLL_PROCESS_ATTACH:
-          _d_dll_fixup(hInstance);
+          _d_dll_init(hInstance);
           debug(PRINTF) printf("druntime loaded\n");
           version(Win32)
           {

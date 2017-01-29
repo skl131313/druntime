@@ -495,7 +495,7 @@ export enum DllIsUsedFromC : bool
 mixin template SimpleDllMain(DllIsUsedFromC isUsedFromC = DllIsUsedFromC.yes)
 {
     import core.sys.windows.windows : HINSTANCE;
-    import core.sys.windows.dllfixup : _d_dll_fixup;
+    import core.sys.windows.dllinit : _d_dll_init;
 
     extern(Windows)
     bool DllMain(HINSTANCE hInstance, uint ulReason, void* reserved)
@@ -508,7 +508,7 @@ mixin template SimpleDllMain(DllIsUsedFromC isUsedFromC = DllIsUsedFromC.yes)
         {
             default: assert(0);
             case DLL_PROCESS_ATTACH:
-                _d_dll_fixup(hInstance);
+                _d_dll_init(hInstance);
                 return dll_process_attach( hInstance, isUsedFromC );
 
             case DLL_PROCESS_DETACH:

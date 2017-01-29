@@ -31,7 +31,7 @@ DRUNTIME_BASE=druntime$(MODEL)
 DRUNTIME=lib\$(DRUNTIME_BASE).lib
 DRUNTIME_SHARED=lib\$(DRUNTIME_BASE)s.lib
 DRUNTIME_SHARED_OBJ=lib\$(DRUNTIME_BASE)s.obj
-DRUNTIME_SHARED_OBJ_LIST=lib\$(DRUNTIME_BASE)s_objs.txt
+DRUNTIME_SHARED_C_LIB=lib\$(DRUNTIME_BASE)s_c.lib
 DRUNTIME_SHARED_DLL=bin\$(DRUNTIME_BASE)s.dll
 GCSTUB=lib\gcstub$(MODEL).obj
 DLLFIXUP=lib\dllfixup$(MODEL).lib
@@ -41,7 +41,7 @@ CFLAGS=$(CFLAGS) /Zl
 
 DOCFMT=
 
-target : import copydir copy $(DRUNTIME) $(GCSTUB) $(DRUNTIME_SHARED_OBJ_LIST) $(DLLFIXUP)
+target : import copydir copy $(DRUNTIME) $(GCSTUB) $(DRUNTIME_SHARED_OBJ) $(DRUNTIME_SHARED_C_LIB) $(DLLFIXUP)
 
 $(mak\COPY)
 $(mak\DOCS)
@@ -1291,15 +1291,18 @@ $(DRUNTIME_SHARED) : $(OBJS) msvc_$(MODEL)_shared.obj $(DLLFIXUP) $(SRCS) src\rt
 	SET UCRTVersion=$(UCRTVERSION)
 	SET WindowsSdkDir=$(WINDOWSSDKDIR)
 	SET LIB="$(UNIVERSALCRTSDKDIR)\Lib\$(UCRTVERSION)\um\$(LIBSUBDIR)";"$(UNIVERSALCRTSDKDIR)\Lib\$(UCRTVERSION)\ucrt\$(LIBSUBDIR)"
-	$(DMD) -of$(DRUNTIME_SHARED_DLL) -version=Shared -shared $(DFLAGS) $(SRCS) src\rt\dllmain.d -defaultlib="msvcrt" $(OBJS) msvc_$(MODEL)_shared.obj $(DLLFIXUP) -L/IMPLIB:tmp\imp_$(DRUNTIME_BASE).lib user32.lib -L/NODEFAULTLIB:libcmt
+	$(DMD) -of$(DRUNTIME_SHARED_DLL) -version=Shared -shared $(DFLAGS) $(SRCS) src\rt\dllmain.d $(OBJS) msvc_$(MODEL)_shared.obj $(DLLFIXUP) -L/IMPLIB:tmp\imp_$(DRUNTIME_BASE).lib user32.lib
 	$(AR) /OUT:$(DRUNTIME_SHARED) tmp\imp_$(DRUNTIME_BASE).lib $(DLLFIXUP)
 
 # shared version to be linked into shared version of phobos
 $(DRUNTIME_SHARED_OBJ) : $(SRCS) src\rt\dllmain.d win64.mak
 	$(DMD) -c -of$(DRUNTIME_SHARED_OBJ) -version=Shared -shared $(DFLAGS) $(SRCS) src\rt\dllmain.d -defaultlib="msvcrt"
-	
-$(DRUNTIME_SHARED_OBJ_LIST) : win64.mak makeObjList.bat $(OBJS) msvc_$(MODEL)_shared.obj $(DRUNTIME_SHARED_OBJ)
-	makeObjList.bat $(OBJS) msvc_$(MODEL)_shared.obj $(DRUNTIME_SHARED_OBJ) > $(DRUNTIME_SHARED_OBJ_LIST)
+
+# Lib file of all C code build in druntime to be linked into shared version of phobos
+# Note DRUNTIME_SHARED_OBJ can not be part of this because the linker treats .lib and .obj
+# files differently when it comes to dllexport.
+$(DRUNTIME_SHARED_C_LIB) : win64.mak $(OBJS) msvc_$(MODEL)_shared.obj
+	$(AR) /OUT:$(DRUNTIME_SHARED_C_LIB) $(OBJS) msvc_$(MODEL)_shared.obj
 
 	
 
@@ -1334,7 +1337,7 @@ install: druntime.zip
 
 clean:
 	del $(DRUNTIME) $(OBJS_TO_DELETE) $(GCSTUB) 
-	del $(DLLFIXUP) $(DRUNTIME_SHARED_OBJ) $(DRUNTIME_SHARED_OBJ_LIST) $(DRUNTIME_SHARED)
+	del $(DLLFIXUP) $(DRUNTIME_SHARED_OBJ) $(DRUNTIME_SHARED_C_LIB) $(DRUNTIME_SHARED)
 	rmdir /S /Q $(DOCDIR) $(IMPDIR)
 
 auto-tester-build: target
